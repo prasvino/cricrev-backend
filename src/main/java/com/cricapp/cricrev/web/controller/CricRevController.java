@@ -19,5 +19,5 @@ public class CricRevController {
 
 /** @PostMapping("/register")
 
-    @PostMapping("insert") **/
+    @PostMapping("/submit") **/
 }
