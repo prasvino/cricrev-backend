@@ -7,7 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class CricRevApplication {
 
 	public static void main(String[] args) {
+
+		System.out.println("WELCOME TO CRIC REV!!!!");
 		SpringApplication.run(CricRevApplication.class, args);
+
 	}
 
 }
