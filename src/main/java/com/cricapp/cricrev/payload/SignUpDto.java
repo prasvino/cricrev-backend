@@ -5,8 +5,11 @@ import lombok.Data;
 
 @Data
 public class SignUpDto {
-    private String name;
     private String username;
+    private String firstname;
+    private String lastname;
+
+    private String dob;
     private String email;
     private String password;
 
@@ -18,12 +21,28 @@ public class SignUpDto {
         this.username = username;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstname() {
+        return firstname;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstname(String name) {
+        this.firstname = firstname;
+    }
+
+    public String getLastname() {
+        return lastname;
+    }
+
+    public void setLastname(String name) {
+        this.lastname = lastname;
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String email) {
+        this.dob = dob;
     }
     public String getEmail() {
         return email;
