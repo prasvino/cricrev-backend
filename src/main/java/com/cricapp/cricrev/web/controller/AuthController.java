@@ -1,27 +1,25 @@
 package com.cricapp.cricrev.web.controller;
-import com.cricapp.cricrev.model.Role;
 import com.cricapp.cricrev.model.User;
 import com.cricapp.cricrev.payload.LoginDto;
 import com.cricapp.cricrev.payload.SignUpDto;
-import com.cricapp.cricrev.repository.RoleRepository;
 import com.cricapp.cricrev.repository.UserRepository;
 import com.cricapp.cricrev.response.AuthResponse;
 import com.cricapp.cricrev.utility.JwtTokenUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,36 +32,42 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
+   /* @Autowired
+    private RoleRepository roleRepository;*/
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    @CrossOrigin
     @PostMapping("/signin")
-    public ResponseEntity<AuthResponse> authenticateUser(@RequestBody LoginDto loginDto){
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginDto.getUsernameOrEmail(), loginDto.getPassword()));
-
+    public ResponseEntity<AuthResponse> authenticateUser(@RequestBody LoginDto loginDto, HttpServletRequest request){
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        HttpSession session = request.getSession(true);
+        session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
+        UsernamePasswordAuthenticationToken token= new UsernamePasswordAuthenticationToken(
+                loginDto.getUsernameOrEmail(), loginDto.getPassword());
+        token.setDetails(new WebAuthenticationDetails(request));
+        Authentication authentication = authenticationManager.authenticate(token);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        // Generate JWT token
-        final String token = jwtTokenUtil.generateToken((UserDetails) authentication.getPrincipal());
-        AuthResponse authResponse = new AuthResponse(token);
-        // Return the token to the client
-        return ResponseEntity.ok(authResponse);
-       //return new ResponseEntity<>("User signed-in successfully!.", HttpStatus.OK);
-    }
+        try {
+            String jwt = jwtTokenUtil.generateToken(loginDto.getUsernameOrEmail());
+            return new ResponseEntity<>(new AuthResponse(jwt, "User signed-in successfully!."), HttpStatus.OK);
+        }
+        catch(Exception e){
 
+            return new ResponseEntity<>(new AuthResponse("", "User signed-in successfully!."), HttpStatus.NON_AUTHORITATIVE_INFORMATION);
+        }
+    }
+    @CrossOrigin
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignUpDto signUpDto){
 
         // add check for username exists in a DB
-        if(userRepository.existsByUsername(signUpDto.getUsername())){
+        Optional<User> userEx =userRepository.findByUsername(signUpDto.getUsername());
+        if(userEx.isPresent()){
             return new ResponseEntity<>("Username is already taken!", HttpStatus.BAD_REQUEST);
         }
-
-        // add check for email exists in DB
-        if(userRepository.existsByEmail(signUpDto.getEmail())){
+        Optional<User> emailEx =userRepository.findByUsername(signUpDto.getEmail());
+        if(emailEx.isPresent()){
             return new ResponseEntity<>("Email is already taken!", HttpStatus.BAD_REQUEST);
         }
 
@@ -75,8 +79,6 @@ public class AuthController {
         user.setEmail(signUpDto.getEmail());
         user.setDob(signUpDto.getDob());
         user.setPassword(passwordEncoder.encode(signUpDto.getPassword()));
-        Role roles = roleRepository.findByName("ROLE_ADMIN").get();
-        user.setRoles(Collections.singleton(roles));
 
         userRepository.save(user);
 

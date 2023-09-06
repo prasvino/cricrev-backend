@@ -25,7 +25,7 @@ public class SignUpDto {
         return firstname;
     }
 
-    public void setFirstname(String name) {
+    public void setFirstname(String firstname) {
         this.firstname = firstname;
     }
 
@@ -33,7 +33,7 @@ public class SignUpDto {
         return lastname;
     }
 
-    public void setLastname(String name) {
+    public void setLastname(String lastname) {
         this.lastname = lastname;
     }
 
@@ -41,7 +41,7 @@ public class SignUpDto {
         return dob;
     }
 
-    public void setDob(String email) {
+    public void setDob(String dob) {
         this.dob = dob;
     }
     public String getEmail() {

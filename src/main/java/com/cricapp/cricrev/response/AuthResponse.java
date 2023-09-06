@@ -3,7 +3,7 @@ package com.cricapp.cricrev.response;
 public class AuthResponse {
     private String token;
 
-    public AuthResponse(String token) {
+    public AuthResponse(String token,String message) {
         this.token = token;
     }
 
